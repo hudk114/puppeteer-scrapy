@@ -2,15 +2,23 @@ const config = require('./config.json');
 
 const puppeteer = require('puppeteer');
 
-async function setClick() {
-  const browser = await puppeteer.launch();
+async function click(page, querySelector) {
+  await page.click(querySelector);
+  await page.waitFor(1000);
+}
+
+async function exec(url, querySelectorList) {
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
-  await page.goto(config.url);
+  await page.goto(url);
   await page.waitFor(1000);
 
-  await page.click(config.querySelector);
+  for (let i = 0; i < querySelectorList.length; i++) {
+    const item = querySelectorList[i];
+    await click(page, item);
+  }
 
   // await browser.close();
 }
 
-setClick();
+module.exports = exec;
