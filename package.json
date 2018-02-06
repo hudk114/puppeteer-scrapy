@@ -1,0 +1,26 @@
+{
+  "name": "puppeteer-scrapy",
+  "version": "1.0.0",
+  "description": "sth interesting by puppeteer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hudk114/puppeteer-scrapy.git"
+  },
+  "keywords": [
+    "puppeteer",
+    "scrapy"
+  ],
+  "author": "hudk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hudk114/puppeteer-scrapy/issues"
+  },
+  "homepage": "https://github.com/hudk114/puppeteer-scrapy#readme",
+  "dependencies": {
+    "puppeteer": "^1.0.0"
+  }
+}

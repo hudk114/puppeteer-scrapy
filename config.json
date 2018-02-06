@@ -1,0 +1,4 @@
+{
+  "url": "https://www.baidu.com/",
+  "querySelector": "#s_menus_wrapper > span:nth-child(2)"
+}
