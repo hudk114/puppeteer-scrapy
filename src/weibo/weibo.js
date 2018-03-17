@@ -26,11 +26,11 @@ const id = userList[0];
   
   try {
     // TODO 对视频处理
+    // FIXME 滑动到出现当前月 
     await page.click('ul[group_id="03月"] img[class="photo_pict"]');
     await page.waitFor(1000);
     await page.click('div[node-type="wrapIcon"] a[node-type="maximum"]');
   } catch (error) {
-    
   }
 
   // try {
