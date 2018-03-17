@@ -57,3 +57,5 @@ typings/
 # dotenv environment variables file
 .env
 
+**/user.js
+src/weibo/userList.js
