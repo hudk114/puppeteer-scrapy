@@ -5,18 +5,37 @@ const userList = require('./userList');
 const scroll = require('../utils/scroll');
 
 const covertTime = function (str) {
-  const pattern = /^((\d*)年)?(\d*)月/;
+  const pattern = /^((\d*)年)?((\d*)月)?/;
   const match = pattern.exec(str);
-
   return {
-    year: match[3] ? parseInt(match[3], 10) : (new Date()).getFullYear(),
-    month: parseInt(match[4], 10)
+    year: match[2] ? parseInt(match[2], 10) : (new Date()).getFullYear(),
+    // 没有month的情况下，要保证year的全部内容都加载，所以month要设置为最大，保证没有一个就早于输入条件
+    month: match[4] ? parseInt(match[4], 10) : 13
   };
 };
 
 /**
+ * date 1 > date 2 (date 1 is later than date 2) true else false
+ * @param {Date} date1 
+ * @param {Date} date2 
+ */
+const compareTime = (date1, date2) => {
+  if (date1.year > date2.year) {
+    return true;
+  } else if (date1.year < date2.year) {
+    return false;
+  }
+  
+  if (date1.month > date2.month) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+/**
  * 确定根据微博时间线，在给定时间节点之前可能出现的所有时间组合，并比较
- * 微博的时间线有 年内: '{month}月(*日)' 年外: '{year}年{month}月(*日)'
+ * 微博的时间线有 年内: '{month}月(*日)' 年外: '{year}年{month}月(*日)', '{year}年'
  * @param {*} page 
  * @param {*} year 
  * @param {*} month 
@@ -36,26 +55,33 @@ const judgeTimeBefore = async (page, year, month) => {
     '.photo_album_list',
     uls => uls.map(ul => ul.getAttribute('group_id'))
   );
-
-  // FIXME 对每个time进行判断，判断出每个的时间，然后和传入时间比较
-  // 如果有一个早于的说明达到查询条件
-  // TODO 其实只比较最后一个就可以了
-  for (let i = 0; i < times.length; i++) {
-    let cD = covertTime(times[i]);
-    
+  
+  // 比较最后一个timer和传入时间，如果早于说明达到查询条件
+  if (times.length <= 0) {
+    return false;
   }
-
-  console.log(times);
-
-  if (y === year) {
-    // year为本年的情况下
-    // 
+  let cD = covertTime(times[times.length - 1]);
+  if (compareTime({
+      year,
+      month
+    }, cD)) {
+    // cD时间比传入的晚
+    return true;
+  } else {
+    return false;
   }
-  return true;
+};
+
+const extractImg = imgUrl => {
+  const pattern = /\/([^\/]*).jpg/;
+  console.log(imgUrl);
+  const match = pattern.exec(imgUrl);
+  console.log(match);
+  return match[1];
 };
 
 const weibo = async () => {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
 const id = userList[0];
@@ -77,33 +103,26 @@ const id = userList[0];
 
   try {
     await scroll(page, async p => {
-      // TODO 在某个时间点之前的都可能
+      // TODO 时间抽离出去
       return await judgeTimeBefore(page, 2018, 2);
-      // let ele = await p.$('ul[group_id="2017年12月"]');
-      // console.log(ele);
-      // return !!ele;
     });
     
+    // 获取所有图片
     // TODO 对视频处理
+    const imgList = await page.$$eval(
+      '.photo_pict',
+      imgs => imgs.map(img => img.src)
+    );
+    imgList = imgList.map(item => extractImg(item));
+    console.log(imgList);
+
     // await page.click('ul[group_id="03月"] img[class="photo_pict"]');
     // await page.waitFor(1000);
     // await page.click('div[node-type="wrapIcon"] a[node-type="maximum"]');
   } catch (error) {
   }
 
-  // try {
-  //   const deploy = new Deploy(page, {
-  //     message: 'upd8',
-  //     dev: true,
-  //     test: true
-  //   });
-
-  //   await deploy.deploy();
-  // } catch (e) {
-  //   console.log(e);
-  // }
-
-  // browser.close();
+  browser.close();
 };
 
 weibo();
