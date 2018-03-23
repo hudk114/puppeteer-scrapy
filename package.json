@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/hudk114/puppeteer-scrapy#readme",
   "dependencies": {
+    "koa": "^2.5.0",
     "puppeteer": "^1.0.0"
   }
 }

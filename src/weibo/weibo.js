@@ -78,23 +78,31 @@ const extractImg = imgUrl => {
 
   if (/miaopai.com/.test(imgUrl)) {
     // video
-    return '';
+    return null;
   }
   const patternJpg = /\/([^\/]*.jpg)/;
   const patternGif = /\/([^\/]*.gif)/;
-  let url = '';
+  let img = null;
   const matchJpg = patternJpg.exec(imgUrl);
   const matchGif = patternGif.exec(imgUrl);
   if (matchJpg) {
-    url = `${config.imgPrefix}${matchJpg[1]}`;
+    img = {
+      url: `${config.imgPrefix}${matchJpg[1]}`,
+      type: 'jpg'
+    };
   } else if (matchGif) {
-    url = `${config.gifPrefix}${matchGif[1]}`;
+    img = {
+      url: `${config.gifPrefix}${matchGif[1]}`,
+      type: 'gif'
+    };
   }
-  return url;
+  return img;
 };
 
 const newInstance = async (browser, user, year, month) => {
   let imgList = [];
+  let fixedImgList = [];
+
   const page = await browser.newPage();
   const url = `https://weibo.com/p/${user}/photos`;
   
@@ -123,15 +131,15 @@ const newInstance = async (browser, user, year, month) => {
       '.photo_pict',
       imgs => imgs.map(img => img.src)
     );
-    imgList = imgList
+    fixedImgList = imgList
       .map(item => extractImg(item))
       // filter video
-      .filter(item => item !== '');
+      .filter(item => item !== null);
     
   } catch (e) {
     console.log(`爬虫报错：${e.message}`);
   } finally {
-    return imgList;
+    return fixedImgList;
   }
 };
 
