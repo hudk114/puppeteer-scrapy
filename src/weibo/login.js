@@ -2,14 +2,12 @@
 const user = require('./user');
 
 const needLogin = async page => {
-  const ele = await page.$('#pl_login_form');
-
+  const ele = await page.$('a[node-type="loginBtn"]');
   return !!ele;
 };
 
 const login = async page => {
-  
-  if (needLogin(page)) {
+  if (await needLogin(page)) {
     await page.click('a[node-type="loginBtn"]');
     await page.waitFor(1000);
     await page.click('a[action-data="tabname=login"]');

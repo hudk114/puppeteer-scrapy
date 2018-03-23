@@ -3,6 +3,7 @@ const login = require('./login');
 // create your user file nad userList file!
 const userList = require('./userList');
 const scroll = require('../utils/scroll');
+const config = require('./config');
 
 const covertTime = function (str) {
   const pattern = /^((\d*)年)?((\d*)月)?/;
@@ -73,21 +74,31 @@ const judgeTimeBefore = async (page, year, month) => {
 };
 
 const extractImg = imgUrl => {
-  const pattern = /\/([^\/]*).jpg/;
-  console.log(imgUrl);
-  const match = pattern.exec(imgUrl);
-  console.log(match);
-  return match[1];
+  const patternVideo = /imgaliyuncdn.miaopai.com/;
+
+  if (/miaopai.com/.test(imgUrl)) {
+    // video
+    return '';
+  }
+  const patternJpg = /\/([^\/]*.jpg)/;
+  const patternGif = /\/([^\/]*.gif)/;
+  let url = '';
+  const matchJpg = patternJpg.exec(imgUrl);
+  const matchGif = patternGif.exec(imgUrl);
+  if (matchJpg) {
+    url = `${config.imgPrefix}${matchJpg[1]}`;
+  } else if (matchGif) {
+    url = `${config.gifPrefix}${matchGif[1]}`;
+  }
+  return url;
 };
 
-const weibo = async () => {
-  const browser = await puppeteer.launch({ headless: false });
+const newInstance = async (browser, user, year, month) => {
+  let imgList = [];
   const page = await browser.newPage();
-
-const id = userList[0];
-
-  const url = `https://weibo.com/p/${id}/photos`;
-
+  const url = `https://weibo.com/p/${user}/photos`;
+  
+  // TODO 用算法，不要一次性开太多
   await page.goto(url);
 
   // TODO 加一个判断机制，看页面是否加载
@@ -103,26 +114,42 @@ const id = userList[0];
 
   try {
     await scroll(page, async p => {
-      // TODO 时间抽离出去
-      return await judgeTimeBefore(page, 2018, 2);
+      return await judgeTimeBefore(page, year, month);
     });
     
     // 获取所有图片
-    // TODO 对视频处理
-    const imgList = await page.$$eval(
+    // TODO 对视频处理，目前没有处理
+    imgList = await page.$$eval(
       '.photo_pict',
       imgs => imgs.map(img => img.src)
     );
-    imgList = imgList.map(item => extractImg(item));
-    console.log(imgList);
-
-    // await page.click('ul[group_id="03月"] img[class="photo_pict"]');
-    // await page.waitFor(1000);
-    // await page.click('div[node-type="wrapIcon"] a[node-type="maximum"]');
-  } catch (error) {
+    imgList = imgList
+      .map(item => extractImg(item))
+      // filter video
+      .filter(item => item !== '');
+    
+  } catch (e) {
+    console.log(`爬虫报错：${e.message}`);
+  } finally {
+    return imgList;
   }
-
-  browser.close();
 };
 
-weibo();
+const weibo = async (userList) => {
+  const browser = await puppeteer.launch({ headless: true });
+  
+  let img = {};
+  
+  // TODO 有很多方式
+  for (const i of userList) {
+    img[i] = await newInstance(browser, i, 2018, 3);
+  }
+
+  await browser.close();
+
+  return img;
+};
+
+weibo(userList).then(res => {
+  console.log(res);
+});

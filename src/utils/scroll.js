@@ -17,7 +17,6 @@ module.exports = async (page, callback) => {
     await page.waitFor(2000);
 
     if (typeof callback === 'function' && await callback(page)) {
-      console.log('to the end by callback');
       return;
     }
 
@@ -25,7 +24,6 @@ module.exports = async (page, callback) => {
     let tmpY = await page.evaluate(() => window.scrollY);
     if (tmpH === bodyH && tmpY === bodyY) {
       // both not change, means to the end of page
-      console.log('to the end');
       return;
     }
     bodyH = tmpH;
