@@ -4,7 +4,7 @@ const userList = require('./userList');
 const user = require('./user');
 
 const getWeiboPic = async (year, month) => {
-  return await weibo(userList, user, year, month);
+  return await weibo(userList, user);
 };
 
 module.exports = getWeiboPic;

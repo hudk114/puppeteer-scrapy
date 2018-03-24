@@ -143,14 +143,14 @@ const newInstance = async (browser, userId, year, month, user) => {
   }
 };
 
-const weibo = async (userList, user, year, month) => {
+const weibo = async (userList, user) => {
   const browser = await puppeteer.launch({ headless: true });
   
   let img = {};
   
   // TODO 有很多方式
   for (const i of userList) {
-    img[i] = await newInstance(browser, i, year, month, user);
+    img[i.id] = await newInstance(browser, i.id, i.year, i.month, user);
   }
 
   await browser.close();
@@ -158,7 +158,7 @@ const weibo = async (userList, user, year, month) => {
   return img;
 };
 
-// weibo(userList, user, 2018, 3).then(res => {
+// weibo(userList, user).then(res => {
 //   console.log(res);
 // });
 
