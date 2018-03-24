@@ -1,7 +1,5 @@
 const puppeteer = require('puppeteer');
 const login = require('./login');
-// create your user file nad userList file!
-const userList = require('./userList');
 const scroll = require('../utils/scroll');
 const config = require('./config');
 
@@ -88,23 +86,25 @@ const extractImg = imgUrl => {
   if (matchJpg) {
     img = {
       url: `${config.imgPrefix}${matchJpg[1]}`,
+      name: matchJpg[1],
       type: 'jpg'
     };
   } else if (matchGif) {
     img = {
       url: `${config.gifPrefix}${matchGif[1]}`,
+      name: matchGif[1],
       type: 'gif'
     };
   }
   return img;
 };
 
-const newInstance = async (browser, user, year, month) => {
+const newInstance = async (browser, userId, year, month, user) => {
   let imgList = [];
   let fixedImgList = [];
 
   const page = await browser.newPage();
-  const url = `https://weibo.com/p/${user}/photos`;
+  const url = `https://weibo.com/p/${userId}/photos`;
   
   // TODO 用算法，不要一次性开太多
   await page.goto(url);
@@ -113,7 +113,7 @@ const newInstance = async (browser, user, year, month) => {
   await page.waitFor(10000);
 
   try {
-    await login(page);
+    await login(page, user);
   } catch (e) {
     console.log(e);
   }
@@ -143,14 +143,14 @@ const newInstance = async (browser, user, year, month) => {
   }
 };
 
-const weibo = async (userList) => {
+const weibo = async (userList, user, year, month) => {
   const browser = await puppeteer.launch({ headless: true });
   
   let img = {};
   
   // TODO 有很多方式
   for (const i of userList) {
-    img[i] = await newInstance(browser, i, 2018, 3);
+    img[i] = await newInstance(browser, i, year, month, user);
   }
 
   await browser.close();
@@ -158,6 +158,8 @@ const weibo = async (userList) => {
   return img;
 };
 
-weibo(userList).then(res => {
-  console.log(res);
-});
+// weibo(userList, user, 2018, 3).then(res => {
+//   console.log(res);
+// });
+
+module.exports = weibo;

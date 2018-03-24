@@ -1,0 +1,10 @@
+const weibo = require('../../src/weibo/weibo');
+// create your user file nad userList file!
+const userList = require('./userList');
+const user = require('./user');
+
+const getWeiboPic = async (year, month) => {
+  return await weibo(userList, user, year, month);
+};
+
+module.exports = getWeiboPic;

@@ -4,7 +4,8 @@
   "description": "sth interesting by puppeteer",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "weibo": "node src/weibo/weibo.js"
+    "weibo": "node src/weibo/weibo.js",
+    "start": "node server/index.js"
   },
   "repository": {
     "type": "git",

@@ -1,12 +1,9 @@
-// create your user file nad userList file!
-const user = require('./user');
-
 const needLogin = async page => {
   const ele = await page.$('a[node-type="loginBtn"]');
   return !!ele;
 };
 
-const login = async page => {
+const login = async (page, user) => {
   if (await needLogin(page)) {
     await page.click('a[node-type="loginBtn"]');
     await page.waitFor(1000);
