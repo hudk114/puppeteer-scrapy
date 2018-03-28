@@ -100,6 +100,8 @@ const extractImg = imgUrl => {
 };
 
 const newInstance = async (browser, userId, year, month, user) => {
+  console.log(`获取${userId}进程开始`);
+  
   let imgList = [];
   let fixedImgList = [];
 
@@ -139,18 +141,25 @@ const newInstance = async (browser, userId, year, month, user) => {
   } catch (e) {
     console.log(`爬虫报错：${e.message}`);
   } finally {
+    console.log(`获取${userId}进程结束`);
     return fixedImgList;
   }
 };
 
+// TODO 修改服务写法，起一个browser，当输入新的userList的时候开一个页面
 const weibo = async (userList, user) => {
   const browser = await puppeteer.launch({ headless: true });
   
   let img = {};
   
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = date.getMonth();
+
   // TODO 有很多方式
   for (const i of userList) {
-    img[i.id] = await newInstance(browser, i.id, i.year, i.month, user);
+    // 如果没有指定年月的话默认只抓取一个月
+    img[i.name || i.id] = await newInstance(browser, i.id, i.year || y, i.month || m, user);
   }
 
   await browser.close();

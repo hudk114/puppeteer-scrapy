@@ -60,3 +60,4 @@ typings/
 **/user.js
 **/userList.js
 /images/*
+!.gitkeep

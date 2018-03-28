@@ -3,7 +3,7 @@ const weibo = require('../../src/weibo/weibo');
 const userList = require('./userList');
 const user = require('./user');
 
-const getWeiboPic = async (year, month) => {
+const getWeiboPic = async () => {
   return await weibo(userList, user);
 };
 

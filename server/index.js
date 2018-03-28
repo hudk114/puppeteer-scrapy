@@ -37,7 +37,7 @@ const getAndStorePic = async (imgList, path) => {
 };
 
 const getPic = async () => {
-  const imgLists = await getWeiboPic(2018, 3);
+  const imgLists = await getWeiboPic();
 
   console.log('获取数据列表成功！');
 
