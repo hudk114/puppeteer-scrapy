@@ -3,6 +3,9 @@ const login = require('./login');
 const scroll = require('../utils/scroll');
 const config = require('./config');
 
+const Pool = require('../utils/pool');
+const p = new Pool(2);
+
 const covertTime = function (str) {
   const pattern = /^((\d*)年)?((\d*)月)?/;
   const match = pattern.exec(str);
@@ -137,7 +140,6 @@ const newInstance = async (browser, userId, year, month, user) => {
       .map(item => extractImg(item))
       // filter video
       .filter(item => item !== null);
-    
   } catch (e) {
     console.log(`爬虫报错：${e.message}`);
   } finally {
@@ -146,9 +148,13 @@ const newInstance = async (browser, userId, year, month, user) => {
   }
 };
 
+const createInstance = function (browser, userId, year, month, user) {
+  return _ => newInstance(browser, userId, year, month, user);
+};
+
 // TODO 修改服务写法，起一个browser，当输入新的userList的时候开一个页面
 const weibo = async (userList, user) => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({ headless: false });
   
   let img = {};
   
@@ -156,11 +162,17 @@ const weibo = async (userList, user) => {
   const y = date.getFullYear();
   const m = date.getMonth();
 
-  // TODO 有很多方式
-  for (const i of userList) {
-    // 如果没有指定年月的话默认只抓取一个月
-    img[i.name || i.id] = await newInstance(browser, i.id, i.year || y, i.month || m, user);
-  }
+  const a = [];
+
+  userList.map((i, index) => {
+    a[index] = createInstance(browser, i.id, i.year || y, i.month || m, user);
+  });
+
+  const imgs = await p.addSync(a);
+
+  userList.map((i, index) => {
+    img[i.name || i.id] = imgs[index];
+  });
 
   await browser.close();
 
