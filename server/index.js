@@ -1,8 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 
-const Pool = require('../src/utils/pool');
-const pool = new Pool(2);
+const Pool = require('@hudk/pool');
+const pool = new Pool(10);
 
 const getWeiboPic = require('./weibo/pic');
 
@@ -10,33 +10,30 @@ const getWeiboPic = require('./weibo/pic');
 const getAndStorePic = async (imgList, path) => {
   const ps = [];
   for (const img of imgList) {
-    ps.push(new Promise((resolve, reject) => {
-      http.get(img.url, res => {
-        res.setEncoding('binary');
-        var data = '';
-        res.on('data', chunk => {
-          data += chunk;
-        }).on('end', () => {
-          if (!fs.existsSync(path)) {
-            fs.mkdirSync(path);
-          };
-          fs.writeFile(`${path}/${img.name}`, data, 'binary', err => {
-            if (!err) {
-              resolve();
-              return;
-            }
-            console.log(`存储出错：${err && err.message}`);
-            reject();
+    pool.add(_ => {
+      return new Promise((resolve, reject) => {
+        http.get(img.url, res => {
+          res.setEncoding('binary');
+          var data = '';
+          res.on('data', chunk => {
+            data += chunk;
+          }).on('end', () => {
+            if (!fs.existsSync(path)) {
+              fs.mkdirSync(path);
+            };
+            fs.writeFile(`${path}/${img.name}`, data, 'binary', err => {
+              if (!err) {
+                resolve();
+                return;
+              }
+              console.log(`存储出错：${err && err.message}`);
+              reject();
+            });
           });
-        });
+        })
       });
-    }));
+    });
   }
-  return Promise.all(ps);
-};
-
-const gASP = (imgList, path) => {
-  return _ => getAndStorePic(imgList, path);
 };
 
 const getPic = async () => {
@@ -46,7 +43,7 @@ const getPic = async () => {
 
   for (const key in imgLists) {
     if (imgLists.hasOwnProperty(key)) {
-      pool.add(gASP(imgLists[key], `./images/${key}`));
+      getAndStorePic(imgLists[key], `./images/${key}`);
     }
   }
 };

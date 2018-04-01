@@ -3,7 +3,7 @@ const login = require('./login');
 const scroll = require('../utils/scroll');
 const config = require('./config');
 
-const Pool = require('../utils/pool');
+const Pool = require('@hudk/pool');
 const p = new Pool(5);
 
 const covertTime = function (str) {
