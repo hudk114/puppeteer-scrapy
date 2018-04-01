@@ -1,5 +1,4 @@
 const Event = require('./event');
-const E = new Event();
 
 function judgeFunction(f) {
   return typeof f === 'function';
@@ -10,14 +9,15 @@ async function F(f, cb) {
   cb(ans);
 }
 
-function Pool(len) {
+function Pool(len, e) {
   this.len = len;
   this.pool = Array.apply(null, new Array(len));
+  this.e = e;
 
-  E.on('pool-finish', msg => {
+  e.on('pool-finish', msg => {
     // 清除第index个，向外发消息
     this.pool[msg.index] = null;
-    E.trigger('pool-empty');
+    e.trigger('pool-empty');
   });
 }
 
@@ -35,7 +35,7 @@ Object.assign(Pool.prototype, {
     }
     this.pool[r[0]] = F(f, ans => {
       judgeFunction(cb) && cb(ans);
-      E.trigger('pool-finish', {
+      this.e.trigger('pool-finish', {
         index: r[0]
       });
     });
@@ -46,10 +46,12 @@ Object.assign(Pool.prototype, {
   }
 });
 
-function MsgQueue(pool) {
+function MsgQueue(pool, e) {
   this.pool = pool;
   this.queue = [];
-  E.on('pool-empty', _ => {
+  this.e = e;
+
+  e.on('pool-empty', _ => {
     if (this.queue.length <= 0) {
       return;
     }
@@ -62,7 +64,7 @@ function MsgQueue(pool) {
     } catch (e) {}
     
     if (this.queue.length === 0) {
-      E.trigger('msg-empty');
+      e.trigger('msg-empty');
     }
   });
 }
@@ -77,8 +79,9 @@ Object.assign(MsgQueue.prototype, {
 });
 
 function P(len) {
-  this.pool = new Pool(len);
-  this.msg = new MsgQueue(this.pool);
+  this.e = new Event();
+  this.pool = new Pool(len, this.e);
+  this.msg = new MsgQueue(this.pool, this.e);
 }
 
 Object.assign(P.prototype, {
@@ -96,8 +99,7 @@ Object.assign(P.prototype, {
   // 同步方法，只有所有fL执行完才能用
   async addSync(fL) {
     const ps = [];
-    for (const i in fL) {
-      const f = fL[i];
+    for (const f of fL) {
       ps.push(new Promise(resolve => {
         try {
           this.pool.add(f, resolve);

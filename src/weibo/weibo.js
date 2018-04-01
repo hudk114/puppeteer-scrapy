@@ -4,7 +4,7 @@ const scroll = require('../utils/scroll');
 const config = require('./config');
 
 const Pool = require('../utils/pool');
-const p = new Pool(2);
+const p = new Pool(5);
 
 const covertTime = function (str) {
   const pattern = /^((\d*)年)?((\d*)月)?/;
@@ -154,7 +154,7 @@ const createInstance = function (browser, userId, year, month, user) {
 
 // TODO 修改服务写法，起一个browser，当输入新的userList的时候开一个页面
 const weibo = async (userList, user) => {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: true });
   
   let img = {};
   

@@ -1,39 +1,42 @@
 const http = require('http');
 const fs = require('fs');
 
-const url = 'http://wx3.sinaimg.cn/large/aeea9a29ly1fplkd4y7e9j21bf0qo424.jpg';
-
-const imgList = [
-  {
-    url: 'http://wx3.sinaimg.cn/large/aeea9a29ly1fplkd4y7e9j21bf0qo424.jpg',
-    name: 'aeea9a29ly1fplkd4y7e9j21bf0qo424.jpg',
-    type: 'jpg'
-  }
-];
+const Pool = require('../src/utils/pool');
+const pool = new Pool(2);
 
 const getWeiboPic = require('./weibo/pic');
 
 // imgList item: { url, name, type }
 const getAndStorePic = async (imgList, path) => {
+  const ps = [];
   for (const img of imgList) {
-    http.get(img.url, res => {
-      res.setEncoding('binary');
-      var data = '';
-      res.on('data', chunk => {
-        data += chunk;
-      }).on('end', () => {
-        if (!fs.existsSync(path)) {
-          fs.mkdirSync(path);
-        };
-        fs.writeFile(`${path}/${img.name}`, data, 'binary', err => {
-          if (!err) {
-            return;
-          }
-          console.log(`存储出错：${err && err.message}`);
+    ps.push(new Promise((resolve, reject) => {
+      http.get(img.url, res => {
+        res.setEncoding('binary');
+        var data = '';
+        res.on('data', chunk => {
+          data += chunk;
+        }).on('end', () => {
+          if (!fs.existsSync(path)) {
+            fs.mkdirSync(path);
+          };
+          fs.writeFile(`${path}/${img.name}`, data, 'binary', err => {
+            if (!err) {
+              resolve();
+              return;
+            }
+            console.log(`存储出错：${err && err.message}`);
+            reject();
+          });
         });
       });
-    });
+    }));
   }
+  return Promise.all(ps);
+};
+
+const gASP = (imgList, path) => {
+  return _ => getAndStorePic(imgList, path);
 };
 
 const getPic = async () => {
@@ -43,7 +46,7 @@ const getPic = async () => {
 
   for (const key in imgLists) {
     if (imgLists.hasOwnProperty(key)) {
-      getAndStorePic(imgLists[key], `./images/${key}`);
+      pool.add(gASP(imgLists[key], `./images/${key}`));
     }
   }
 };
