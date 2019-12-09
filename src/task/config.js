@@ -3,6 +3,12 @@ const km = {
   password: '',
 };
 
+const weibo = {
+  name: '',
+  password: '',
+};
+
 module.exports = {
   km,
+  weibo,
 };

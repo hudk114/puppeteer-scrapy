@@ -2,6 +2,8 @@
  * task entry
  */
 
-const km = require('./km');
+// const km = require('./km');
+const weibo = require('./weibo');
 
-km();
+// km();
+weibo.hotSearch();
