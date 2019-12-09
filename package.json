@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "weibo": "node src/weibo/weibo.js",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "task": "node src/task/index.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +25,9 @@
   "dependencies": {
     "@hudk/event": "0.0.1",
     "@hudk/pool": "0.0.1",
+    "commander": "^4.0.1",
+    "inquirer": "^7.0.0",
     "koa": "^2.5.0",
-    "puppeteer": "^1.0.0"
+    "puppeteer": "^2.0.0"
   }
 }
