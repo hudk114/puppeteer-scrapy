@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const inquirer = require('inquirer');
 
 const { km } = require('./config');
@@ -6,16 +5,22 @@ const {
   loginWrapper,
   execLogin,
 } = require('../components/login');
-const { scrapyList } = require('../components/scrapy');
-const { writeJson } = require('../components/fs');
+const {
+  scrapyList,
+  scrapyDOM,
+} = require('../components/scrapy');
+const {
+  writeJson,
+  writeHTML,
+} = require('../components/fs');
 
-module.exports = async () => {
-  const browser = await puppeteer.launch({ headless: true }); // TODO browser抽出去
-  const page = await browser.newPage();
-  await page.goto('http://km.oa.com/');
-  await page.waitFor(2000);
-
-  await execLogin(
+/**
+ * 登陆
+ * @param {Page} page
+ * @returns {Promise}
+ */
+async function login(page) {
+  return await execLogin(
     page,
     async page => {
       const ele = await page.$('input[name="ibnLogin"]');
@@ -33,7 +38,7 @@ module.exports = async () => {
           type: 'input',
           message: '大爷您的pin是多少来着？',
         }]);
-  
+
         await loginWrapper(
           'input[name="txtLoginName"]',
           'input[name="txtPassword"]',
@@ -45,7 +50,7 @@ module.exports = async () => {
       }
     },
     async page => {
-      await page.waitFor(1500);
+      await page.waitFor(3000);
 
       // 去掉信息安全声明
       const info = await page.$('#bootstrap_modal');
@@ -60,17 +65,50 @@ module.exports = async () => {
     },
   );
 
+}
+
+/**
+ * 文章热榜
+ * @param {Browser} browser 
+ */
+async function topArtile(browser) {
+  const page = await browser.newPage();
+  await page.goto('http://km.oa.com/');
+  await page.waitFor(2000);
+
+  await login(page);
+
   const arr = await scrapyList(
     page,
     '.hot_list',
     '.artical_title a',
     async dom => {
       return await dom.evaluate(obj => ({
-          title: obj.title,
-          href: obj.href,
-        }));
+        title: obj.title,
+        href: obj.href,
+      }));
     }
   );
 
-  await writeJson('files', (new Date()).toLocaleString(), JSON.stringify(arr));
+  // TODO page pool
+  await Promise.all(arr.map(async ({ title, href }) => {
+    const page = await browser.newPage();
+
+    console.log(`open ${href}`);
+    await page.goto(href);
+    await page.waitFor(7000);
+
+    const content = await scrapyDOM(page, '.middle-main-l.article_middle_main.left');
+    await writeHTML('files', title, content);
+    console.log(`write file: ${title}`);
+
+    await page.close();
+  }));
+  console.log('done');
+  
+  await page.close();
+}
+
+module.exports = {
+  topArtile,
 };

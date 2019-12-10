@@ -74,7 +74,6 @@ async function hotSearch() {
   await writeJson('files', `weibo-hot-${(new Date()).toLocaleString()}`, JSON.stringify(arr));
 }
 
-
 module.exports = {
   hotSearch,
 };

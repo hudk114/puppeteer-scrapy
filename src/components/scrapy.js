@@ -22,6 +22,19 @@ async function scrapyList(
   return await Promise.all(doms.map(async dom => await func(dom)));
 }
 
+/**
+ * 抓取DOM片段
+ * @param {Page} page
+ * @param {CssSelectore} wrapper
+ */
+async function scrapyDOM(page, wrapper) {
+  const dom = await page.$(wrapper);
+  if (!dom) return '';
+  return await dom.evaluate(obj => obj.innerHTML);
+}
+
+
 module.exports = {
   scrapyList,
+  scrapyDOM,
 };
